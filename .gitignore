@@ -1,6 +1,8 @@
 node_modules/
 **/dist/
-**/lib/
+# TypeScript compile output (Cloud Functions). Do NOT use **/lib/ —
+# that glob also swallows web/src/lib/ which is real source code.
+functions/lib/
 .DS_Store
 *.log
 .firebase/

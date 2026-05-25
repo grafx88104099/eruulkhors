@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="mn">
+<head>
+<meta charset="utf-8"/>
+<title>Plastic Center · FSOS — Print</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
+<style>
+  @page { size: 1480px 1040px; margin: 0; }
+
+  html, body { background: white; margin: 0; padding: 0; }
+
+  .print-root { background: white; }
+
+  .print-page {
+    width: 1480px;
+    height: 1040px;
+    background: var(--paper);
+    break-after: page;
+    page-break-after: always;
+    overflow: hidden;
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+  }
+  .print-page:last-child { break-after: auto; page-break-after: auto; }
+
+  .print-page.is-cover { background: var(--paper); }
+
+  .print-header {
+    flex: none;
+    height: 42px;
+    background: white;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    font-size: 12.5px;
+  }
+  .print-screen {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  /* Defuse sticky / 100vh inside the rendered screens */
+  .print-screen .sidebar,
+  .print-screen .topbar { position: relative !important; top: auto !important; }
+  .print-screen .app {
+    min-height: 0 !important;
+    height: 100% !important;
+  }
+  .print-screen .rail { max-height: none !important; }
+
+  /* Dispatch uses calc(100vh - 52px); force a print-friendly height */
+  .print-screen > div > [style*="100vh"],
+  .print-screen [style*="calc(100vh"] {
+    height: 950px !important;
+  }
+
+  /* Hide topbar shift + search clutter to give content more room */
+  .print-screen .topbar { display: none !important; }
+
+  /* Make the sidebar present but slimmer so screens still get full width */
+  .print-screen .app {
+    display: grid !important;
+    grid-template-columns: 220px 1fr !important;
+  }
+
+  /* Mobile screen needs space for 3 phones */
+  .print-screen .page { padding: 16px 20px !important; }
+
+  /* ── Cover page ───────────────────────── */
+  .cover {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 56px 80px;
+    position: relative;
+  }
+  .cover::before {
+    content: "";
+    position: absolute; top: 0; right: 0; width: 380px; height: 100%;
+    background: linear-gradient(180deg, transparent 0%, transparent 60%, rgba(229, 75, 22, 0.04) 100%);
+    pointer-events: none;
+  }
+  .cover-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .cover-main {
+    flex: 1;
+    padding-top: 60px;
+    max-width: 1180px;
+  }
+  .cover-title {
+    font-size: 96px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    margin: 0 0 32px;
+    color: var(--ink);
+  }
+  .cover-sub {
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 720px;
+    margin: 0 0 56px;
+  }
+  .cover-modules {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+    margin-top: 32px;
+  }
+  .cover-mod {
+    border-top: 2px solid var(--ink);
+    padding-top: 12px;
+  }
+  .cover-mod:nth-child(n+5) { grid-column: span 1; }
+  .cover-foot {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* Keep flex/grid intact in print */
+  @media print {
+    .print-page { box-shadow: none; border-bottom: none; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="data.js"></script>
+<script type="text/babel" src="components/ui.jsx"></script>
+<script type="text/babel" src="components/ubmap.jsx"></script>
+<script type="text/babel" src="components/android-frame.jsx"></script>
+<script type="text/babel" src="screens/dashboard.jsx"></script>
+<script type="text/babel" src="screens/dispatch.jsx"></script>
+<script type="text/babel" src="screens/orders.jsx"></script>
+<script type="text/babel" src="screens/pricing.jsx"></script>
+<script type="text/babel" src="screens/history.jsx"></script>
+<script type="text/babel" src="screens/inventory.jsx"></script>
+<script type="text/babel" src="screens/mobile.jsx"></script>
+<script type="text/babel" src="print-app.jsx"></script>
+</body>
+</html>

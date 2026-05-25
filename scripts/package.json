@@ -1,0 +1,12 @@
+{
+  "name": "ecosupport-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "node seed-firestore.mjs",
+    "seed:emulator": "FIRESTORE_EMULATOR_HOST=localhost:8080 node seed-firestore.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.1.0"
+  }
+}

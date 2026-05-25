@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #F5F4F1;
+  --ink: #0F1114;
+  --accent: #E54B16;
+}
+
+body {
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono { font-family: "Geist Mono", ui-monospace, monospace; }
+
+/* Reuse a small set of patterns from the mockup */
+.card { @apply bg-white border border-ink-line/20 rounded-xl; }
+.chip { @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs border border-ink-line/30; }
+.chip.on { @apply bg-ink text-paper border-ink; }
+.btn { @apply inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm font-medium border border-ink-line/30 hover:bg-ink-line/10; }
+.btn.primary { @apply bg-accent text-white border-accent hover:bg-accent/90; }
+.btn.emerald { @apply bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700; }
+.input { @apply w-full border border-ink/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white; }
+
+/* Захиалагчийн портал (eco theme) дотор text-accent, bg-accent ашигласныг emerald-руу шилжүүлнэ */
+.eco-theme .text-accent { color: theme(colors.emerald.600); }
+.eco-theme .bg-accent\/15 { background-color: rgb(5 150 105 / 0.15); }
+.eco-theme .bg-accent\/5 { background-color: rgb(5 150 105 / 0.07); }
+.eco-theme .border-accent { border-color: theme(colors.emerald.600); }
+.eco-theme .btn.primary { @apply bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700; }
+.eco-theme .pill-busy { @apply bg-emerald-600/15 text-emerald-700; }
+.pill-busy { @apply bg-accent/15 text-accent; }
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pill-idle { @apply bg-ok/15 text-ok; }
+.pill-off { @apply bg-ink-line/15 text-ink/60; }

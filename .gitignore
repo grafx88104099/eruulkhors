@@ -1,0 +1,21 @@
+node_modules/
+**/dist/
+**/lib/
+.DS_Store
+*.log
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*.env.local
+.envrc
+service-account*.json
+*-firebase-adminsdk*.json
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+
+# Per-user Claude settings (paths, permissions)
+.claude/settings.local.json

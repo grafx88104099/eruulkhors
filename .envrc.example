@@ -1,0 +1,14 @@
+# Source this file before starting `firebase emulators:start`, `vite`, or `tsc -w`.
+#   $ source .envrc.example
+# Or copy to .envrc if you use direnv (`direnv allow`).
+#
+# Каждый кап доорх багц нь өмнө 80GB хүртэл RAM ачаалж байсныг бууруулна.
+
+# Firestore/Auth/Storage emulators are Java — cap their heap (default can grow huge).
+export JAVA_TOOL_OPTIONS="-Xmx1g -Xms128m"
+
+# Vite, tsc -w, Functions emulator are Node — cap their old-space heap.
+export NODE_OPTIONS="--max-old-space-size=2048"
+
+# Optional: limit how many file watchers Vite/chokidar registers in node_modules.
+export CHOKIDAR_USEPOLLING=0

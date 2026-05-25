@@ -1,0 +1,116 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    // Олон рольтой хэрэглэгчийг дэмжих — token.roles[] эсвэл token.role (legacy)
+    function hasRole(r) {
+      return signedIn() && (
+        request.auth.token.role == r ||
+        (request.auth.token.roles is list && r in request.auth.token.roles)
+      );
+    }
+    function isAdmin() {
+      return hasRole('super_admin') || hasRole('dispatcher');
+    }
+    function isTech() {
+      return hasRole('tech_driver') || hasRole('tech_pump')
+          || hasRole('tech_repair') || hasRole('tech_install');
+    }
+
+    // Read-only reference data — anyone signed in can read; only admin writes.
+    match /districts/{id}        { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /tankSizes/{id}        { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /pricingZones/{id}     { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /multipliers/{id}      { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /commissionRules/{id}  { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /suppliers/{id}        { allow read: if signedIn(); allow write: if isAdmin() || hasRole('warehouse'); }
+    match /warehouses/{id}       { allow read: if signedIn(); allow write: if isAdmin() || hasRole('warehouse'); }
+    match /skus/{id}             { allow read: if signedIn(); allow write: if isAdmin() || hasRole('warehouse'); }
+    // Бүтээгдэхүүний каталог — public read, admin write
+    match /products/{id}         { allow read: if true; allow write: if isAdmin() || hasRole('warehouse'); }
+
+    // Operational data
+    match /technicians/{id} {
+      allow read:  if signedIn();
+      allow write: if isAdmin();
+      // Технич өөрийн status, location-оо шинэчилнэ
+      allow update: if signedIn()
+                    && request.auth.uid == id
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['status', 'location', 'updatedAt']);
+    }
+    match /customers/{id} {
+      allow read:  if signedIn();
+      allow write: if isAdmin();
+    }
+    match /orders/{id} {
+      // Хэрэв админ/диспетчер бол бүх захиалга харна.
+      // Техникч өөртөө оноосон захиалгыг, эсвэл нээлттэй broadcast захиалгыг харна.
+      // Захиалагч зөвхөн өөрийн захиалгыг харна.
+      allow read: if isAdmin()
+                  || (isTech()  && resource.data.technicianId == request.auth.uid)
+                  || (isTech()  && resource.data.get('isOpen', false) == true)
+                  || (hasRole('customer') && resource.data.customerId == request.auth.uid);
+
+      // Үүсгэх — зөвхөн админ (захиалагч createOrder Cloud Function-р үүсгэнэ)
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+
+      // Техникч өөрийн захиалгын статусыг шинэчилнэ
+      allow update: if isTech()
+                    && resource.data.technicianId == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['status', 'updatedAt', 'currentStep']);
+
+      // Захиалагч өөрийн захиалгад rating, цуцлах хүсэлт нэмнэ
+      allow update: if hasRole('customer')
+                    && resource.data.customerId == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['rating', 'ratingComment', 'updatedAt']);
+
+      match /events/{evId} {
+        allow read: if signedIn();
+        allow create: if isAdmin() || (isTech() && get(/databases/$(database)/documents/orders/$(id)).data.technicianId == request.auth.uid);
+      }
+    }
+
+    match /stockLevels/{id}    { allow read: if signedIn(); allow write: if isAdmin() || hasRole('warehouse'); }
+    match /stockMovements/{id} { allow read: if signedIn(); allow create: if isAdmin() || hasRole('warehouse'); }
+    match /purchaseOrders/{id} { allow read: if signedIn(); allow write: if isAdmin() || hasRole('warehouse'); }
+
+    match /locationPings/{id} {
+      allow read:   if isAdmin();
+      allow create: if isTech() && request.resource.data.technicianId == request.auth.uid;
+    }
+
+    match /users/{uid} {
+      allow read:  if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Үйлчилгээ үзүүлэгчээр бүртгүүлэх хүсэлт — олон нийт create хийнэ, зөвхөн админ унш/шинэчлэх
+    match /partner_applications/{id} {
+      allow read: if isAdmin();
+      allow update, delete: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly([
+                        'fullName','phone','email','companyName',
+                        'roles','districts','experienceYears','vehicleInfo',
+                        'note','status','createdAt','source'
+                      ])
+                    && request.resource.data.fullName is string
+                    && request.resource.data.fullName.size() >= 2
+                    && request.resource.data.fullName.size() <= 120
+                    && request.resource.data.phone is string
+                    && request.resource.data.phone.size() >= 6
+                    && request.resource.data.phone.size() <= 20
+                    && request.resource.data.roles is list
+                    && request.resource.data.roles.size() >= 1
+                    && request.resource.data.roles.size() <= 4
+                    && request.resource.data.status == 'pending';
+    }
+  }
+}

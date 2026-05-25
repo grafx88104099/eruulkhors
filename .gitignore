@@ -19,3 +19,6 @@ service-account*.json
 
 # Per-user Claude settings (paths, permissions)
 .claude/settings.local.json
+
+# Vercel CLI link cache (per-machine)
+.vercel

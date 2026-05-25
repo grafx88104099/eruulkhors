@@ -394,7 +394,7 @@ export default function Landing({ initialAuth, initialAudience }: LandingProps) 
       </section>
 
       {/* ───────── Footer ───────── */}
-      <footer className="bg-ink text-paper py-12 px-4 sm:px-8">
+      <footer className="bg-soil-900 text-paper py-12 px-4 sm:px-8">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-6 gap-8 text-sm">
           <div className="col-span-2 md:col-span-2">
             <div className="font-semibold text-lg mb-2 flex items-center gap-2">

@@ -85,7 +85,7 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-ink text-paper flex flex-col">
+    <div className="min-h-screen bg-soil-900 text-paper flex flex-col">
       {/* Top bar */}
       <header className="border-b border-paper/10">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">

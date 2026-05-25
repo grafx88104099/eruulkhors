@@ -30,10 +30,11 @@ body {
   .input { @apply w-full border border-ink/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white; }
 }
 
-/* Захиалагчийн портал (eco theme) дотор text-accent, bg-accent ашигласныг emerald-руу шилжүүлнэ */
+/* Захиалагчийн портал (eco theme) дотор text-accent, bg-accent ашигласныг
+   логоны brand ногоон руу шилжүүлнэ. RGB утгууд нь #5F8F2F-аас үүсэв. */
 .eco-theme .text-accent { color: theme(colors.emerald.600); }
-.eco-theme .bg-accent\/15 { background-color: rgb(5 150 105 / 0.15); }
-.eco-theme .bg-accent\/5 { background-color: rgb(5 150 105 / 0.07); }
+.eco-theme .bg-accent\/15 { background-color: rgb(95 143 47 / 0.15); }
+.eco-theme .bg-accent\/5 { background-color: rgb(95 143 47 / 0.07); }
 .eco-theme .border-accent { border-color: theme(colors.emerald.600); }
 .eco-theme .btn.primary { @apply bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700; }
 .eco-theme .pill-busy { @apply bg-emerald-600/15 text-emerald-700; }

@@ -5,6 +5,7 @@ import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import { auth, db } from "@/firebase/client";
 import { homeForRoles } from "@/lib/useRoles";
 import AuthModal, { Audience } from "@/components/AuthModal";
+import { BrandMark } from "@/components/BrandMark";
 
 interface CatalogProduct {
   id: string;
@@ -82,7 +83,8 @@ export default function Landing({ initialAuth, initialAudience }: LandingProps) 
       <header className="fixed top-0 inset-x-0 z-30 bg-paper/80 backdrop-blur border-b border-ink/5">
         <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
           <a href="#top" className="font-semibold text-lg flex items-center gap-2">
-            <span className="text-emerald-600">●</span> eruulkhors
+            <BrandMark size={22} />
+            <span>eruulkhors</span>
             <span className="hidden sm:inline text-xs text-ink/40 mono">· plasticcenter.mn</span>
           </a>
           <nav className="hidden md:flex items-center gap-7 text-sm">
@@ -395,8 +397,9 @@ export default function Landing({ initialAuth, initialAudience }: LandingProps) 
       <footer className="bg-ink text-paper py-12 px-4 sm:px-8">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-6 gap-8 text-sm">
           <div className="col-span-2 md:col-span-2">
-            <div className="font-semibold text-lg mb-2">
-              <span className="text-emerald-300">●</span> eruulkhors
+            <div className="font-semibold text-lg mb-2 flex items-center gap-2">
+              <BrandMark size={20} />
+              <span>eruulkhors</span>
             </div>
             <div className="text-paper/60 mb-4">Пластик Центр ХХК · 2016 оноос үйл ажиллагаа явуулж байна</div>
             <div className="text-paper/40 text-xs">Хоггүй Монголын төлөө хамтдаа</div>

@@ -10,6 +10,7 @@ import {
 } from "firebase/auth";
 import { auth } from "@/firebase/client";
 import { homeForRoles } from "@/lib/useRoles";
+import { BrandMark } from "@/components/BrandMark";
 
 type Mode = "login" | "signup";
 export type Audience = "customer" | "staff" | "partner";
@@ -205,8 +206,9 @@ export default function AuthModal({ open, initialMode = "login", audience = "cus
           <div className="inline-flex items-center gap-1.5 chip border border-ink/10 text-xs mb-2">
             {cfg.badge}
           </div>
-          <div className="text-2xl font-semibold">
-            <span className={cfg.accentDot}>●</span> {cfg.title}
+          <div className="text-2xl font-semibold flex items-center gap-2">
+            <BrandMark size={24} />
+            <span>{cfg.title}</span>
           </div>
           <p className="text-sm text-ink/60 mt-1">{cfg.subtitle(mode)}</p>
           {cfg.outerHeader && (

@@ -9,6 +9,7 @@ import {
   User,
 } from "firebase/auth";
 import { auth } from "@/firebase/client";
+import { BrandMark } from "@/components/BrandMark";
 
 const ADMIN_ROLES = new Set(["super_admin", "dispatcher", "warehouse", "finance"]);
 
@@ -89,7 +90,7 @@ export default function AdminLogin() {
       <header className="border-b border-paper/10">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="font-semibold text-base flex items-center gap-2">
-            <span className="text-emerald-400">●</span>
+            <BrandMark size={18} />
             <span>eruulkhors</span>
             <span className="text-xs text-paper/40 mono">· back office</span>
           </Link>

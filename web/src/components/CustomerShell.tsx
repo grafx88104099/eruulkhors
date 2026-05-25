@@ -10,6 +10,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { signOut, User } from "firebase/auth";
 import { auth } from "@/firebase/client";
 import { useRoles } from "@/lib/useRoles";
+import { BrandMark } from "@/components/BrandMark";
 
 const NAV = [
   { to: "/me",          label: "Миний нүүр",      end: true },
@@ -33,7 +34,7 @@ export default function CustomerShell({ user }: { user: User }) {
       <header className="border-b border-ink/10 bg-paper/90 backdrop-blur sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
           <Link to="/" className="font-semibold text-lg flex items-center gap-1.5 shrink-0">
-            <span className="text-emerald-600">●</span>
+            <BrandMark size={20} />
             <span>eruulkhors</span>
           </Link>
 

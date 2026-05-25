@@ -5,6 +5,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth, db } from "@/firebase/client";
 import { homeForRoles } from "@/lib/useRoles";
 import AuthModal from "@/components/AuthModal";
+import { BrandMark } from "@/components/BrandMark";
 
 const ROLE_OPTIONS = [
   { key: "tech_install", label: "Суулгагч",   desc: "Септик систем суурилуулах ажил" },
@@ -118,7 +119,7 @@ export default function Partner() {
       <header className="fixed top-0 inset-x-0 z-30 bg-paper/80 backdrop-blur border-b border-ink/5">
         <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between gap-3">
           <Link to="/" className="font-semibold text-lg flex items-center gap-2 min-w-0">
-            <span className="text-emerald-600">●</span>
+            <BrandMark size={20} />
             <span className="truncate">eruulkhors</span>
           </Link>
           <div className="flex items-center gap-2 shrink-0">

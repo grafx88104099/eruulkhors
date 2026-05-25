@@ -11,6 +11,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { signOut, User } from "firebase/auth";
 import { auth } from "@/firebase/client";
 import { useRoles } from "@/lib/useRoles";
+import { BrandMark } from "@/components/BrandMark";
 
 interface NavItem {
   to: string;
@@ -44,17 +45,19 @@ export default function AdminShell({ user }: { user: User }) {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       <header className="lg:hidden flex items-center justify-between bg-ink text-paper p-4">
-        <Link to="/" className="font-semibold" title="Нүүр хуудас">
-          <span className="text-accent">●</span> eruulkhors
-          <span className="text-xs text-paper/40 ml-2 mono">admin</span>
+        <Link to="/" className="font-semibold flex items-center gap-1.5" title="Нүүр хуудас">
+          <BrandMark size={18} />
+          <span>eruulkhors</span>
+          <span className="text-xs text-paper/40 ml-1 mono">admin</span>
         </Link>
         <button onClick={() => setNavOpen(!navOpen)} className="text-sm">{navOpen ? "Хаах" : "Цэс"}</button>
       </header>
 
       <aside className={`bg-ink text-paper p-5 flex-col gap-1 shrink-0 lg:w-64 lg:flex ${navOpen ? "flex" : "hidden lg:flex"}`}>
-        <Link to="/" className="text-xl font-semibold mb-5 hidden lg:block hover:opacity-80" title="Нүүр хуудас">
-          <span className="text-accent">●</span> eruulkhors
-          <span className="text-xs text-paper/40 ml-2 mono">admin</span>
+        <Link to="/" className="text-xl font-semibold mb-5 hidden lg:flex items-center gap-2 hover:opacity-80" title="Нүүр хуудас">
+          <BrandMark size={22} />
+          <span>eruulkhors</span>
+          <span className="text-xs text-paper/40 ml-1 mono">admin</span>
         </Link>
 
         <div className="text-xs uppercase tracking-wider opacity-50 mb-2">Backoffice</div>

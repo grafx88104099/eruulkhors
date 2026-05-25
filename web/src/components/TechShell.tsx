@@ -4,6 +4,7 @@ import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { auth } from "@/firebase/client";
 import { useRoles } from "@/lib/useRoles";
 import { useAvailableOrders } from "@/lib/techHooks";
+import { BrandMark } from "@/components/BrandMark";
 
 const NAV: { to: string; label: string; icon: string; end?: boolean; badgeKey?: "available" }[] = [
   { to: "/tech/available", label: "Шинэ",    icon: "🆕", badgeKey: "available" },
@@ -50,7 +51,7 @@ export default function TechShell() {
       <header className="sticky top-0 z-30 bg-emerald-700 text-white shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <Link to="/tech" className="font-semibold flex items-center gap-2 min-w-0">
-            <span className="text-emerald-300">●</span>
+            <BrandMark size={18} />
             <span className="truncate">eruulkhors</span>
             <span className="hidden xs:inline text-xs text-white/60 mono">· Хамтрагч</span>
           </Link>

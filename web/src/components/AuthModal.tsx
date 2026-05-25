@@ -87,9 +87,15 @@ export default function AuthModal({ open, initialMode = "login", audience = "cus
     const u = auth.currentUser;
     if (!u) { nav("/"); return; }
     try {
-      const t = await u.getIdTokenResult();
-      const claims: any = t.claims;
-      const rs = Array.isArray(claims.roles) ? claims.roles : claims.role ? [claims.role] : ["customer"];
+      // For brand-new accounts the `onUserCreate` Cloud Function assigns
+      // the default 'customer' claim asynchronously. signInWithPopup can
+      // return before the trigger completes, so `getIdTokenResult()`
+      // would show empty claims and route the user incorrectly.
+      //
+      // Force-refresh the token a few times until we see a role appear,
+      // up to ~4 seconds total. If nothing arrives we fall back to
+      // 'customer' (the trigger's eventual default).
+      const rs = await waitForRoles(u);
 
       if (audience === "customer") {
         // Захиалагчийн нэвтрэлт — үргэлж /me
@@ -255,6 +261,25 @@ export default function AuthModal({ open, initialMode = "login", audience = "cus
       </div>
     </div>
   );
+}
+
+/**
+ * Poll Firebase Auth for a custom-claim role. New users get their default
+ * 'customer' claim from the onUserCreate trigger, which may complete a
+ * second or two after sign-in returns. Refreshing the ID token (`true`)
+ * forces a server round-trip that picks up newly assigned claims.
+ */
+async function waitForRoles(u: import("firebase/auth").User): Promise<string[]> {
+  // 5 attempts × ~800ms = ~4s ceiling. After that we trust the default.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const force = attempt > 0; // first read can use the cached token
+    const t = await u.getIdTokenResult(force);
+    const c: any = t.claims;
+    if (Array.isArray(c.roles) && c.roles.length > 0) return c.roles;
+    if (typeof c.role === "string" && c.role) return [c.role];
+    await new Promise((r) => setTimeout(r, 800));
+  }
+  return ["customer"];
 }
 
 function humanError(ex: any): string {

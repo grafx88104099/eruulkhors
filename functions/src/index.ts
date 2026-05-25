@@ -4,6 +4,8 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onDocumentUpdated, onDocumentWritten } from "firebase-functions/v2/firestore";
 import { logger } from "firebase-functions";
+// Auth triggers must use the v1 API — there is no v2 equivalent yet.
+import { auth as authFn } from "firebase-functions/v1";
 
 import { calculateOrderPrice, PricingInputs } from "./pricing";
 
@@ -882,4 +884,146 @@ export const onStockChange = onDocumentUpdated("stockLevels/{id}", async (event)
   if (after.isLow !== low || after.isCritical !== critical) {
     await event.data!.after.ref.update({ isLow: low, isCritical: critical });
   }
+});
+
+/* ------------------------------------------------------------------ */
+/*  onUserCreate — auto-provision every new Firebase Auth user.        */
+/*                                                                     */
+/*  This is the SINGLE source of truth for new-user setup. Client      */
+/*  never writes the initial users/{uid} doc nor the role claim — it   */
+/*  cannot, because rules forbid it (and that is by design: a client   */
+/*  that could write its own role could escalate to super_admin).      */
+/*                                                                     */
+/*  Race notes:                                                        */
+/*  • approvePartnerApplication also calls adminAuth.createUser, which */
+/*    fires this trigger. To avoid clobbering the tech claims that     */
+/*    flow sets, we only assign default 'customer' claims when no      */
+/*    claims exist at the moment we read the user back.                */
+/*  • The users/{uid} doc is written with merge:true so both flows can */
+/*    coexist without overwriting each other's fields.                 */
+/* ------------------------------------------------------------------ */
+export const onUserCreate = authFn.user().onCreate(async (u) => {
+  try {
+    // Re-fetch — between the original create() and this trigger another
+    // server flow (e.g. approvePartnerApplication's applyRoles) may have
+    // already set claims. Honor whatever is there.
+    const fresh = await adminAuth.getUser(u.uid);
+    const existing = (fresh.customClaims ?? {}) as any;
+    const hasClaims = !!existing.role || (Array.isArray(existing.roles) && existing.roles.length > 0);
+
+    if (!hasClaims) {
+      await adminAuth.setCustomUserClaims(u.uid, {
+        role: "customer",
+        roles: ["customer"],
+      });
+    }
+
+    await db.doc(`users/${u.uid}`).set({
+      uid: u.uid,
+      email: u.email ?? null,
+      displayName: u.displayName ?? null,
+      photoURL: u.photoURL ?? null,
+      phone: u.phoneNumber ?? null,
+      provider: u.providerData?.[0]?.providerId ?? (u.email ? "password" : "anonymous"),
+      // role mirror is for display only; rules trust the claim, not this field
+      role: existing.role || "customer",
+      roles: Array.isArray(existing.roles) && existing.roles.length > 0 ? existing.roles : ["customer"],
+      createdAt: FieldValue.serverTimestamp(),
+      lastSignInAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    logger.info(`[onUserCreate] provisioned ${u.uid} (${u.email ?? u.phoneNumber ?? "anon"})`);
+  } catch (err) {
+    logger.error(`[onUserCreate] failed for ${u.uid}`, err);
+    throw err; // surface to Cloud Logging so we notice
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/*  onUserDelete — archive profile when an Auth account is removed.    */
+/*                                                                     */
+/*  We do NOT hard-delete the users doc: existing orders may reference */
+/*  the uid via customerId/technicianId, and we want history to remain */
+/*  readable. Instead we flag it deleted and clear PII.                */
+/* ------------------------------------------------------------------ */
+export const onUserDelete = authFn.user().onDelete(async (u) => {
+  try {
+    await db.doc(`users/${u.uid}`).set({
+      deleted: true,
+      deletedAt: FieldValue.serverTimestamp(),
+      // Wipe PII; keep uid + role so historical joins still work
+      email: null,
+      phone: null,
+      displayName: "[Устгагдсан хэрэглэгч]",
+      photoURL: null,
+    }, { merge: true });
+    logger.info(`[onUserDelete] archived ${u.uid}`);
+  } catch (err) {
+    logger.error(`[onUserDelete] failed for ${u.uid}`, err);
+    throw err;
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/*  backfillUsers — admin-only safety net.                             */
+/*                                                                     */
+/*  Scans every Firebase Auth user and ensures they have:              */
+/*    • a users/{uid} document                                         */
+/*    • at least one custom claim (defaults to 'customer')             */
+/*                                                                     */
+/*  Useful after rolling out onUserCreate to a project that already    */
+/*  has accounts, or to recover from a CF outage. Idempotent.          */
+/* ------------------------------------------------------------------ */
+export const backfillUsers = onCall(async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "Нэвтэрнэ үү");
+  if (!callerHasRole(req.auth.token, "super_admin")) {
+    throw new HttpsError("permission-denied", "Зөвхөн супер админ");
+  }
+
+  const dryRun = req.data?.dryRun === true;
+  let scanned = 0;
+  let claimsFixed = 0;
+  let docsCreated = 0;
+  let pageToken: string | undefined = undefined;
+
+  do {
+    const page = await adminAuth.listUsers(1000, pageToken);
+    for (const u of page.users) {
+      scanned++;
+      const claims = (u.customClaims ?? {}) as any;
+      const needsClaim = !claims.role && !(Array.isArray(claims.roles) && claims.roles.length);
+
+      const ref = db.doc(`users/${u.uid}`);
+      const snap = await ref.get();
+      const needsDoc = !snap.exists;
+
+      if (!needsClaim && !needsDoc) continue;
+
+      if (!dryRun) {
+        if (needsClaim) {
+          await adminAuth.setCustomUserClaims(u.uid, { role: "customer", roles: ["customer"] });
+        }
+        if (needsDoc) {
+          await ref.set({
+            uid: u.uid,
+            email: u.email ?? null,
+            displayName: u.displayName ?? null,
+            photoURL: u.photoURL ?? null,
+            phone: u.phoneNumber ?? null,
+            provider: u.providerData?.[0]?.providerId ?? (u.email ? "password" : "anonymous"),
+            role: claims.role || "customer",
+            roles: Array.isArray(claims.roles) && claims.roles.length ? claims.roles : ["customer"],
+            createdAt: u.metadata?.creationTime ? new Date(u.metadata.creationTime) : FieldValue.serverTimestamp(),
+            backfilledAt: FieldValue.serverTimestamp(),
+          }, { merge: true });
+        }
+      }
+      if (needsClaim) claimsFixed++;
+      if (needsDoc) docsCreated++;
+    }
+    pageToken = page.pageToken;
+  } while (pageToken);
+
+  logger.info(`[backfillUsers] dryRun=${dryRun} scanned=${scanned} claimsFixed=${claimsFixed} docsCreated=${docsCreated} by ${req.auth.uid}`);
+  return { ok: true, dryRun, scanned, claimsFixed, docsCreated };
 });

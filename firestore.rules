@@ -88,8 +88,24 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow read:  if signedIn() && (request.auth.uid == uid || isAdmin());
-      allow write: if isAdmin();
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+
+      // Create is server-only:
+      //   • onUserCreate trigger uses admin SDK (bypasses rules).
+      //   • Admin can also manually create via UI.
+      // Client cannot create its own doc — that would let it set role.
+      allow create: if isAdmin();
+
+      // Update is admin OR self with a tight whitelist. Notably `role` and
+      // `roles` are NOT in the whitelist — only callable CFs (setUserRoles,
+      // approvePartnerApplication, applyRoles) can change authorization.
+      allow update: if isAdmin()
+                  || (signedIn()
+                      && request.auth.uid == uid
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['displayName','photoURL','phone','lastSignInAt']));
+
+      allow delete: if isAdmin();
     }
 
     // Үйлчилгээ үзүүлэгчээр бүртгүүлэх хүсэлт — олон нийт create хийнэ, зөвхөн админ унш/шинэчлэх

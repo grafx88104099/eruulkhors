@@ -120,7 +120,7 @@ export default function Partner() {
         <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between gap-3">
           <Link to="/" className="font-semibold text-lg flex items-center gap-2 min-w-0">
             <BrandMark size={20} />
-            <span className="truncate">eruulkhors</span>
+            <span className="truncate">eruul hors</span>
           </Link>
           <div className="flex items-center gap-2 shrink-0">
             {user ? (

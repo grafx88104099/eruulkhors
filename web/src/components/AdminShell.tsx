@@ -47,7 +47,7 @@ export default function AdminShell({ user }: { user: User }) {
       <header className="lg:hidden flex items-center justify-between bg-ink text-paper p-4">
         <Link to="/" className="font-semibold flex items-center gap-1.5" title="Нүүр хуудас">
           <BrandMark size={18} />
-          <span>eruulkhors</span>
+          <span>eruul hors</span>
           <span className="text-xs text-paper/40 ml-1 mono">admin</span>
         </Link>
         <button onClick={() => setNavOpen(!navOpen)} className="text-sm">{navOpen ? "Хаах" : "Цэс"}</button>
@@ -56,7 +56,7 @@ export default function AdminShell({ user }: { user: User }) {
       <aside className={`bg-ink text-paper p-5 flex-col gap-1 shrink-0 lg:w-64 lg:flex ${navOpen ? "flex" : "hidden lg:flex"}`}>
         <Link to="/" className="text-xl font-semibold mb-5 hidden lg:flex items-center gap-2 hover:opacity-80" title="Нүүр хуудас">
           <BrandMark size={22} />
-          <span>eruulkhors</span>
+          <span>eruul hors</span>
           <span className="text-xs text-paper/40 ml-1 mono">admin</span>
         </Link>
 

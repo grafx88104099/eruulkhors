@@ -84,7 +84,7 @@ export default function Landing({ initialAuth, initialAudience }: LandingProps) 
         <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
           <a href="#top" className="font-semibold text-lg flex items-center gap-2">
             <BrandMark size={22} />
-            <span>eruulkhors</span>
+            <span>eruul hors</span>
             <span className="hidden sm:inline text-xs text-ink/40 mono">· plasticcenter.mn</span>
           </a>
           <nav className="hidden md:flex items-center gap-7 text-sm">
@@ -399,7 +399,7 @@ export default function Landing({ initialAuth, initialAudience }: LandingProps) 
           <div className="col-span-2 md:col-span-2">
             <div className="font-semibold text-lg mb-2 flex items-center gap-2">
               <BrandMark size={20} />
-              <span>eruulkhors</span>
+              <span>eruul hors</span>
             </div>
             <div className="text-paper/60 mb-4">Пластик Центр ХХК · 2016 оноос үйл ажиллагаа явуулж байна</div>
             <div className="text-paper/40 text-xs">Хоггүй Монголын төлөө хамтдаа</div>

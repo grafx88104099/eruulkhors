@@ -35,7 +35,7 @@ const AUDIENCE_THEME: Record<Audience, {
 }> = {
   customer: {
     badge: "🌿 Захиалагч",
-    title: "eruulkhors",
+    title: "eruul hors",
     subtitle: (m) => m === "signup" ? "Шинэ хэрэглэгчээр бүртгүүлэх" : "Захиалагчийн нэвтрэлт",
     accentDot: "text-emerald-600",
     primaryBtn: "bg-emerald-600 hover:bg-emerald-700 border-emerald-600 text-white",
@@ -45,7 +45,7 @@ const AUDIENCE_THEME: Record<Audience, {
   },
   staff: {
     badge: "🔒 Backoffice",
-    title: "eruulkhors · admin",
+    title: "eruul hors · admin",
     subtitle: () => "Дотоод ажилтны нэвтрэлт",
     accentDot: "text-ink",
     primaryBtn: "bg-ink hover:bg-ink-soft border-ink text-paper",
@@ -56,7 +56,7 @@ const AUDIENCE_THEME: Record<Audience, {
   },
   partner: {
     badge: "🔧 Үйлчилгээ үзүүлэгч",
-    title: "eruulkhors · partner",
+    title: "eruul hors · partner",
     subtitle: () => "Зөвшөөрөгдсөн партнерийн нэвтрэлт",
     accentDot: "text-emerald-600",
     primaryBtn: "bg-emerald-600 hover:bg-emerald-700 border-emerald-600 text-white",

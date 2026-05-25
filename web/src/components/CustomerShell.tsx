@@ -35,7 +35,7 @@ export default function CustomerShell({ user }: { user: User }) {
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
           <Link to="/" className="font-semibold text-lg flex items-center gap-1.5 shrink-0">
             <BrandMark size={20} />
-            <span>eruulkhors</span>
+            <span>eruul hors</span>
           </Link>
 
           {/* Desktop nav */}

@@ -52,7 +52,7 @@ export default function TechShell() {
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <Link to="/tech" className="font-semibold flex items-center gap-2 min-w-0">
             <BrandMark size={18} />
-            <span className="truncate">eruulkhors</span>
+            <span className="truncate">eruul hors</span>
             <span className="hidden xs:inline text-xs text-white/60 mono">· Хамтрагч</span>
           </Link>
           <div className="flex items-center gap-1.5 shrink-0">

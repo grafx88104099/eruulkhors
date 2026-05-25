@@ -91,7 +91,7 @@ export default function AdminLogin() {
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="font-semibold text-base flex items-center gap-2">
             <BrandMark size={18} />
-            <span>eruulkhors</span>
+            <span>eruul hors</span>
             <span className="text-xs text-paper/40 mono">· back office</span>
           </Link>
           <Link to="/" className="text-xs text-paper/60 hover:text-paper">← Нүүр</Link>

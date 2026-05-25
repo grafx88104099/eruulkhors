@@ -418,6 +418,7 @@ export default function Partner() {
       <AuthModal
         open={authMode !== null}
         initialMode={authMode ?? "login"}
+        audience="partner"
         onClose={() => setAuthMode(null)}
       />
     </div>

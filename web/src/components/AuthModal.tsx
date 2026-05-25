@@ -12,7 +12,7 @@ import { auth } from "@/firebase/client";
 import { homeForRoles } from "@/lib/useRoles";
 
 type Mode = "login" | "signup";
-export type Audience = "customer" | "staff";
+export type Audience = "customer" | "staff" | "partner";
 
 interface Props {
   open: boolean;
@@ -52,6 +52,17 @@ const AUDIENCE_THEME: Record<Audience, {
     showAnon: false,
     allowSignup: false,
     primaryProvider: "email",
+  },
+  partner: {
+    badge: "🔧 Үйлчилгээ үзүүлэгч",
+    title: "eruulkhors · partner",
+    subtitle: () => "Зөвшөөрөгдсөн партнерийн нэвтрэлт",
+    accentDot: "text-emerald-600",
+    primaryBtn: "bg-emerald-600 hover:bg-emerald-700 border-emerald-600 text-white",
+    outerHeader: "Шинэ бол доорх анкетыг бөглөнө үү — админ зөвшөөрсний дараа нэвтэрнэ.",
+    showAnon: false,
+    allowSignup: false,
+    primaryProvider: "google",
   },
 };
 
@@ -100,6 +111,15 @@ export default function AuthModal({ open, initialMode = "login", audience = "cus
       if (audience === "customer") {
         // Захиалагчийн нэвтрэлт — үргэлж /me
         nav("/me");
+      } else if (audience === "partner") {
+        // Партнер хүсэлт — тех role-той бол /tech, эс бөгөөс анкет бөглөх
+        const hasTech = rs.some((r) => r.startsWith("tech_"));
+        if (hasTech) {
+          nav("/tech");
+        } else {
+          setErr("Энэ бүртгэлд үйлчилгээ үзүүлэгч эрх алга байна. Доорх анкетыг бөглөнө үү.");
+          return;
+        }
       } else {
         // Staff нэвтрэлт — ролоор тохирох дотоод порталд илгээнэ
         const target = homeForRoles(rs);

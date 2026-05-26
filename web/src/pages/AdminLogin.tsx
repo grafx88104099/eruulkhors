@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -21,8 +22,9 @@ export default function AdminLogin() {
 
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
-  const [busy, setBusy] = useState<null | "email" | "google">(null);
+  const [busy, setBusy] = useState<null | "email" | "google" | "reset">(null);
   const [err, setErr] = useState<string | null>(null);
+  const [resetSentTo, setResetSentTo] = useState<string | null>(null);
 
   // Хэрэв аль хэдийн нэвтэрсэн бол админ роль шалгах. Force-refresh the
   // token (`true`) so that a claim issued AFTER the cached token (e.g. a
@@ -73,6 +75,36 @@ export default function AdminLogin() {
       // блок гарч ирнэ.
     } catch (ex: any) {
       setErr(humanError(ex));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function sendReset() {
+    const target = email.trim();
+    setErr(null); setResetSentTo(null);
+    if (!target) {
+      setErr("Эхлээд имэйлээ оруулна уу");
+      return;
+    }
+    setBusy("reset");
+    try {
+      await sendPasswordResetEmail(auth, target);
+      // Confirm to user regardless of whether the email is registered —
+      // Firebase intentionally doesn't reveal which addresses exist, and
+      // we shouldn't either (account-enumeration mitigation).
+      setResetSentTo(target);
+    } catch (ex: any) {
+      // Even on failure (rate-limited, malformed), don't leak existence.
+      // Show the generic confirmation unless it's clearly a client-side
+      // input problem.
+      if (ex?.code === "auth/invalid-email") {
+        setErr("Имэйл формат буруу");
+      } else if (ex?.code === "auth/too-many-requests") {
+        setErr("Хэт олон оролдлого — хэсэг хүлээгээд оролдоно уу");
+      } else {
+        setResetSentTo(target);
+      }
     } finally {
       setBusy(null);
     }
@@ -186,6 +218,11 @@ export default function AdminLogin() {
                     {err}
                   </div>
                 )}
+                {resetSentTo && (
+                  <div className="text-sm text-emerald-200 bg-emerald-500/10 border border-emerald-500/30 rounded px-3 py-2">
+                    Хэрэв <span className="mono">{resetSentTo}</span> бүртгэлтэй бол нууц үг сэргээх имэйл илгээгдсэн. Inbox + spam хавтасаа шалгана уу.
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -193,6 +230,15 @@ export default function AdminLogin() {
                   className="w-full px-4 py-2.5 rounded-md bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-sm font-medium transition"
                 >
                   {busy === "email" ? "Нэвтэрч байна…" : "Нэвтрэх →"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={sendReset}
+                  disabled={busy !== null}
+                  className="w-full text-xs text-paper/60 hover:text-paper underline disabled:opacity-50"
+                >
+                  {busy === "reset" ? "Илгээж байна…" : "Нууц үгээ мартсан уу?"}
                 </button>
               </form>
 

@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { httpsCallable } from "firebase/functions";
 import { doc, onSnapshot } from "firebase/firestore";
+import {
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+} from "firebase/auth";
 import { auth, db, functions } from "@/firebase/client";
 import { ALL_ROLES, ROLE_LABELS, useRoles } from "@/lib/useRoles";
 import { Card, PageHeader } from "@/components/ui/Layout";
@@ -126,10 +131,119 @@ export default function Profile() {
           </button>
         </Card>
 
+        <PasswordCard />
+
         {isSuperAdmin && <UserManagement currentUid={u.uid} />}
       </div>
     </div>
   );
+}
+
+/**
+ * Email/password нэвтэрсэн хэрэглэгчид нууц үгээ солих card.
+ * Google sign-in only хэрэглэгчид нь password байхгүй учир card нуугдана.
+ *
+ * Firebase нь үндсэн нууц үг солихоос өмнө `reauthenticateWithCredential`
+ * шаардана (хэрэв сүүлийн нэвтрэлт хэдхэн минутын дотор болсон бол ч ялгаагүй
+ * заавал — `auth/requires-recent-login` алдаа гарахаас сэргийлдэг).
+ */
+function PasswordCard() {
+  const u = auth.currentUser!;
+  const hasPasswordProvider = u.providerData.some((p) => p.providerId === "password");
+
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [okAt, setOkAt] = useState<number | null>(null);
+
+  if (!hasPasswordProvider) return null;
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(null);
+    setOkAt(null);
+
+    if (newPw.length < 6) { setErr("Шинэ нууц үг 6+ тэмдэгт"); return; }
+    if (newPw !== confirmPw) { setErr("Шинэ нууц үгүүд таарахгүй"); return; }
+    if (newPw === currentPw) { setErr("Шинэ нууц үг хуучнаасаа ялгаатай байх ёстой"); return; }
+    if (!u.email) { setErr("Имэйл байхгүй — нууц үг солих боломжгүй"); return; }
+
+    setBusy(true);
+    try {
+      const cred = EmailAuthProvider.credential(u.email, currentPw);
+      await reauthenticateWithCredential(u, cred);
+      await updatePassword(u, newPw);
+      setOkAt(Date.now());
+      setCurrentPw(""); setNewPw(""); setConfirmPw("");
+    } catch (ex: any) {
+      setErr(humanPwError(ex));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card className="lg:col-span-2" title="Нууц үг солих">
+      <form onSubmit={submit} className="space-y-3 text-sm">
+        <label className="block">
+          <span className="text-ink/60">Одоогийн нууц үг</span>
+          <input
+            type="password"
+            value={currentPw}
+            onChange={(e) => setCurrentPw(e.target.value)}
+            required
+            autoComplete="current-password"
+            className="w-full mt-1 border border-ink/10 rounded-md p-2"
+          />
+        </label>
+        <label className="block">
+          <span className="text-ink/60">Шинэ нууц үг (6+ тэмдэгт)</span>
+          <input
+            type="password"
+            value={newPw}
+            onChange={(e) => setNewPw(e.target.value)}
+            required
+            minLength={6}
+            autoComplete="new-password"
+            className="w-full mt-1 border border-ink/10 rounded-md p-2"
+          />
+        </label>
+        <label className="block">
+          <span className="text-ink/60">Шинэ нууц үг (давтан)</span>
+          <input
+            type="password"
+            value={confirmPw}
+            onChange={(e) => setConfirmPw(e.target.value)}
+            required
+            minLength={6}
+            autoComplete="new-password"
+            className="w-full mt-1 border border-ink/10 rounded-md p-2"
+          />
+        </label>
+        <div className="flex items-center gap-3 pt-2">
+          <button type="submit" disabled={busy} className="btn primary">
+            {busy ? "Солиж байна…" : "Нууц үг солих"}
+          </button>
+          {okAt && <span className="text-xs text-ok">✓ Шинэчиллээ</span>}
+          {err && <span className="text-xs text-err">{err}</span>}
+        </div>
+      </form>
+    </Card>
+  );
+}
+
+function humanPwError(e: any): string {
+  const code = e?.code ?? "";
+  if (code === "auth/wrong-password" || code === "auth/invalid-credential") {
+    return "Одоогийн нууц үг буруу";
+  }
+  if (code === "auth/weak-password") return "Шинэ нууц үг хэт хялбар (6+ тэмдэгт)";
+  if (code === "auth/requires-recent-login") return "Дахин нэвтэрч ороод оролдоно уу";
+  if (code === "auth/too-many-requests") return "Хэт олон оролдлого — хэсэг хүлээгээд оролдоно уу";
+  if (code === "auth/network-request-failed") return "Сүлжээний алдаа";
+  return e?.message ?? "Алдаа гарлаа";
 }
 
 function Row({ k, v }: { k: string; v: string }) {
